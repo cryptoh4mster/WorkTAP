@@ -13,6 +13,7 @@ namespace WorkTAP.Models
         public PersonsContext(DbContextOptions<PersonsContext> options)
                : base(options)
         {
+           // Database.EnsureCreated();
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

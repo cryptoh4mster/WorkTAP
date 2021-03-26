@@ -3,16 +3,19 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using System;
+using System;   
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using WorkTAP.Models;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Server.IISIntegration;
 using Microsoft.Extensions.Configuration;
 using Microsoft.OpenApi.Models;
+using WorkTAP.Services;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
+using Serilog.Extensions.Logging.File;
 
 namespace WorkTAP
 {
@@ -23,14 +26,15 @@ namespace WorkTAP
             Configuration = configuration;
         }
         public IConfiguration Configuration { get; }
-
+            
         public void ConfigureServices(IServiceCollection services)
         {
 
-            var sqlConnectionString = Configuration.GetConnectionString("DataAccessPostgreSqlProvider");
+            var sqlConnectionString = Configuration.GetConnectionString("DataAccessMSSQLProvider");
             services.AddDbContext<PersonsContext>(options => 
-                                                    options.UseLazyLoadingProxies().UseNpgsql(sqlConnectionString));
+                                                    options.UseLazyLoadingProxies().UseSqlServer(sqlConnectionString));
             services.AddControllers();
+            services.AddTransient<IWorkTAPService, WorkTAPService>();
             services.AddSwaggerGen(options =>
             {
                 options.SwaggerDoc("v1", new OpenApiInfo { Title = "API", Version = "v1" });
@@ -39,13 +43,13 @@ namespace WorkTAP
         }   
 
 
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
         {
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
-
+            loggerFactory.AddFile("Logs/HallOfFame-{Date}.txt");
             app.UseSwagger();
             app.UseSwaggerUI(options =>
             {

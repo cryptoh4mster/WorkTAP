@@ -6,35 +6,35 @@ using System.Linq;
 using System.Threading.Tasks;
 using WorkTAP.Models;
 using Microsoft.EntityFrameworkCore;
+using WorkTAP.Services;
 
 namespace WorkTAP.Controllers   
 {
     [Route("api/v1/[controller]")]
     [ApiController]
-    public class PersonsController : ControllerBase
+    public class PersonsController : ControllerBase 
     {
-        PersonsContext db;
-        public PersonsController(PersonsContext context)
-        {
-            db = context;
-        }
+        IWorkTAPService WorkTAPService;
 
-        // GET: api/v1/persons Получение всех сотрудников
-        [Route("~/api/v1/persons")]
+        public PersonsController(IWorkTAPService workTAPService)
+        {
+            WorkTAPService = workTAPService;
+        }
+        /// GET: api/v1/persons Получение всех сотрудниковa
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Person>>> Get()
         {
-            return Ok(await db.Persons.ToListAsync());
+            return Ok(await WorkTAPService.Get());
         }
 
-        // GET: api/v1/person/id Получить конкретного сотрудника
-        [HttpGet("{id}")]
+        /// GET: api/v1/person/id Получить конкретного сотрудника
+        [Route("~/api/v1/person/{id?}")]
+        [HttpGet]
         public async Task<ActionResult<Person>> Get(int id)
         {
             try
             {
-                Person person = await db.Persons.FirstAsync(x => x.Id == id);
-                return Ok(person);
+                return Ok(await WorkTAPService.Get(id));
             }
             catch
             {
@@ -42,87 +42,44 @@ namespace WorkTAP.Controllers
             }
         }
 
-        // PUT: api/v1/person/id Обновление данных конкретного сотрудника
+        /// PUT: api/v1/person/id Обновление данных конкретного сотрудника
+        [Route("~/api/v1/person")]
         [HttpPut]
-        public async Task<ActionResult<Person>> Put(int id, Person updatedPerson)
-        {   
+        public async Task<ActionResult<Person>> Put(Person updatedPerson)
+        {
+            /*try
+            {*/
             try
             {
-                var person = await db.Persons.FindAsync(id);
-
-                db.Entry(person).CurrentValues.SetValues(updatedPerson);
-                var personSkills = person.Skills.ToList();
-
-                foreach (var personSkill in personSkills)
-                {
-                    var skill = updatedPerson.Skills.SingleOrDefault(s => s.Name == personSkill.Name);//ищем навыки которые были до изменений и остались после изменений
-                    if (skill != null)
-                    {
-                        //обновляем поле у навыка сотрудника
-                        db.Entry(personSkill).CurrentValues.SetValues(skill);
-                    }
-                    else
-                    {
-                        //удаляем, если навыка нет
-                        db.Remove(personSkill);
-                    }
-                }
-                //добавляем новые навыки
-                foreach (var skill in updatedPerson.Skills)
-                {
-                    if (personSkills.All(s => s.Name != skill.Name))
-                    {
-                        person.Skills.Add(skill);
-                    }
-                }
-                await db.SaveChangesAsync();
-                return Ok(person);
+                return Ok(await WorkTAPService.Update(updatedPerson));
             }
-            catch 
+            catch
             {
-                if (id != updatedPerson.Id)
-                {
-                    return BadRequest("Неверный запрос");
-                }
-                else if (!PersonExists(id))
-                {
-                    return NotFound("Сущность не найдена");
-                }
-                else
-                    return StatusCode(500);
+                return NotFound("Сущность не найдена");
             }
         }
 
-        // POST: api/v1/person Добавление нового сотрудника
+        /// POST: api/v1/person Добавление нового сотрудника
+        [Route("~/api/v1/person")]
         [HttpPost]
         public async Task<ActionResult<Person>> Post(Person person)
         {
-            db.Persons.Add(person);
-            await db.SaveChangesAsync();
-            return Ok(person);
+            return Ok(await WorkTAPService.Create(person));
         }
 
-        // DELETE: api/v1/person/id  Удаление существующего сотрудника
-        [HttpDelete("{id}")]
+        /// DELETE: api/v1/person/id  Удаление существующего сотрудника
+        [Route("~/api/v1/person/{id?}")]
+        [HttpDelete]
         public async Task<ActionResult<Person>> Delete(int id)
         {
             try
             {
-                var person = await db.Persons.FindAsync(id);
-                db.Persons.Remove(person);
-                await db.SaveChangesAsync();
-                return Ok(person);
+                return Ok(await WorkTAPService.Delete(id));
             }
             catch
             {
                 return NotFound("Пользователя с данным id не существует");
             }
         }
-
-        private bool PersonExists(int id)//проверка существования пользователя с заданным id
-        {
-            return db.Persons.Any(p => p.Id == id);
-        }
-
     }
 }
