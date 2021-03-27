@@ -23,14 +23,15 @@ namespace WorkTAP.Controllers
             _logger = logger;
             WorkTAPService = workTAPService;
         }
-        /// GET: api/v1/persons Получение всех сотрудниковa
+        // GET: api/v1/persons Получение всех сотрудниковa
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Person>>> Get()
-        {            
-            return (ActionResult<IEnumerable<Person>>)Ok(await WorkTAPService.Get()).Value;//Чтобы убрать лишнее поле Result
+        {   
+            //Чтобы убрать лишнее поле Result
+            return (ActionResult<IEnumerable<Person>>)Ok(await WorkTAPService.Get()).Value;
         }
 
-        /// GET: api/v1/person/id Получить конкретного сотрудника
+        // GET: api/v1/person/id Получить конкретного сотрудника
         [Route("~/api/v1/person/{id?}")]
         [HttpGet]
         public async Task<ActionResult<Person>> Get(int id)
@@ -46,7 +47,7 @@ namespace WorkTAP.Controllers
             }
         }
 
-        /// PUT: api/v1/person/id Обновление данных конкретного сотрудника
+        // PUT: api/v1/person/id Обновление данных конкретного сотрудника
         [Route("~/api/v1/person")]
         [HttpPut]
         public async Task<ActionResult<Person>> Put(Person updatedPerson)
@@ -62,7 +63,7 @@ namespace WorkTAP.Controllers
             }
         }
 
-        /// POST: api/v1/person Добавление нового сотрудника
+        // POST: api/v1/person Добавление нового сотрудника
         [Route("~/api/v1/person")]
         [HttpPost]
         public async Task<ActionResult<Person>> Post(Person person)
@@ -70,7 +71,7 @@ namespace WorkTAP.Controllers
             return (ActionResult<Person>)Ok(await WorkTAPService.Create(person)).Value;
         }
 
-        /// DELETE: api/v1/person/id  Удаление существующего сотрудника
+        // DELETE: api/v1/person/id  Удаление существующего сотрудника
         [Route("~/api/v1/person/{id?}")]
         [HttpDelete]
         public async Task<ActionResult<Person>> Delete(int id)

@@ -27,37 +27,41 @@ namespace WorkTAP.Services
         }
         public async Task<ActionResult<Person>> Create(Person person)
         {
-            person.Id = 0;//только ради того, если указывать в swagger любое id!=0, а так на фронте указать id при создании нельзя(он генерируется автоматически)
+            //Только ради того, если указывать в swagger любое id!=0, а так на фронте указать id 
+            //при создании нельзя(он генерируется автоматически).
+            person.Id = 0;
             db.Persons.Add(person);
             await db.SaveChangesAsync();
             return person;
         }
         public async Task<ActionResult<Person>> Update(Person updatedPerson)
         {
+            //Поиск существующего пользователя.
+            Person person = await db.Persons.FindAsync(updatedPerson.Id);
 
-            Person person = await db.Persons.FindAsync(updatedPerson.Id);//поиск существующего пользователя
+            //Обновление всех данных кроме навыков.
+            db.Entry(person).CurrentValues.SetValues(updatedPerson);
 
-
-            db.Entry(person).CurrentValues.SetValues(updatedPerson);//Обновление всех данных кроме навыков
-
-            var personSkills = person.Skills.ToList();//Навыки работника
+            //Навыки работника.
+            var personSkills = person.Skills.ToList();
 
             foreach (var personSkill in personSkills)
             {
-                var skill = updatedPerson.Skills.SingleOrDefault(s => s.Name == personSkill.Name);//ищем навыки которые были до изменений и остались после изменений
+                //Ищем навыки которые были до изменений и остались после изменений.
+                var skill = updatedPerson.Skills.SingleOrDefault(s => s.Name == personSkill.Name);
                 if (skill != null)
                 {
-                    //обновляем поле у навыка сотрудника
+                    //Обновляем поле у навыка сотрудника.
                     db.Entry(personSkill).CurrentValues.SetValues(skill);
                 }
                 else
                 {
-                    //удаляем, если навыка нет
+                    //Удаляем, если навыка нет.
                     db.Remove(personSkill);
                 }
             }
 
-            //добавляем новые навыки
+            //Добавляем новые навыки.
             foreach (var skill in updatedPerson.Skills)
             {
                 if (personSkills.All(s => s.Name != skill.Name))
@@ -65,13 +69,13 @@ namespace WorkTAP.Services
                     person.Skills.Add(skill);
                 }
             }
-
             await db.SaveChangesAsync();
             return (person);
         }
         public async Task<ActionResult<Person>> Delete(int id)
         {
-            Person person = await db.Persons.FindAsync(id);//Поиск существующего пользователя для удаления
+            //Поиск существующего пользователя для удаления.
+            Person person = await db.Persons.FindAsync(id);
             if (person != null)
             {
                 db.Persons.Remove(person);
