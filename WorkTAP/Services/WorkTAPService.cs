@@ -27,7 +27,7 @@ namespace WorkTAP.Services
         }
         public async Task<ActionResult<Person>> Create(Person person)
         {
-            person.Id = 0;//только ради того, если указывать в swagger любое id!=0, а так на фронте указать id при создании нельзя
+            person.Id = 0;//только ради того, если указывать в swagger любое id!=0, а так на фронте указать id при создании нельзя(он генерируется автоматически)
             db.Persons.Add(person);
             await db.SaveChangesAsync();
             return person;
@@ -35,7 +35,7 @@ namespace WorkTAP.Services
         public async Task<ActionResult<Person>> Update(Person updatedPerson)
         {
 
-            Person person = await db.Persons.FindAsync(updatedPerson.Id);
+            Person person = await db.Persons.FindAsync(updatedPerson.Id);//поиск существующего пользователя
 
 
             db.Entry(person).CurrentValues.SetValues(updatedPerson);//Обновление всех данных кроме навыков
@@ -71,17 +71,13 @@ namespace WorkTAP.Services
         }
         public async Task<ActionResult<Person>> Delete(int id)
         {
-            Person person = await db.Persons.FindAsync(id);
+            Person person = await db.Persons.FindAsync(id);//Поиск существующего пользователя для удаления
             if (person != null)
             {
                 db.Persons.Remove(person);
                 await db.SaveChangesAsync();
             }
             return person;
-        }
-        public bool PersonExists(int id)//проверка существования пользователя с заданным id
-        {
-            return db.Persons.Any(p => p.Id == id);
         }
     }
 }

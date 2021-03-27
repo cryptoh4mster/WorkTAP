@@ -14,7 +14,5 @@ namespace WorkTAP.Services
         Task<ActionResult<Person>> Create(Person person);
         Task<ActionResult<Person>> Update(Person updatedPerson);
         Task<ActionResult<Person>> Delete(int id);
-
-        bool PersonExists(int id);
     }
 }

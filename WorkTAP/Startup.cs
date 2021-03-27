@@ -15,7 +15,6 @@ using Microsoft.OpenApi.Models;
 using WorkTAP.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Serilog.Extensions.Logging.File;
 
 namespace WorkTAP
 {
@@ -39,7 +38,6 @@ namespace WorkTAP
             {
                 options.SwaggerDoc("v1", new OpenApiInfo { Title = "API", Version = "v1" });
             });
-
         }   
 
 
@@ -49,7 +47,9 @@ namespace WorkTAP
             {
                 app.UseDeveloperExceptionPage();
             }
-            loggerFactory.AddFile("Logs/HallOfFame-{Date}.txt");
+
+            loggerFactory.AddFile("Logs/HallOfFame-{Date}.txt");   
+
             app.UseSwagger();
             app.UseSwaggerUI(options =>
             {
@@ -61,15 +61,7 @@ namespace WorkTAP
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers(); // подключаем маршрутизацию на контроллеры
-             });
-
-            /*app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapGet("/", async context =>
-                {   
-                    await context.Response.WriteAsync("Hello World!");
-                });
-            });*/
+            });
         }
     }
 }

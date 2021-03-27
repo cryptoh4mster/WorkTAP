@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using WorkTAP.Models;
 using Microsoft.EntityFrameworkCore;
 using WorkTAP.Services;
+using Microsoft.Extensions.Logging;
 
 namespace WorkTAP.Controllers   
 {
@@ -14,17 +15,19 @@ namespace WorkTAP.Controllers
     [ApiController]
     public class PersonsController : ControllerBase 
     {
-        IWorkTAPService WorkTAPService;
+        private IWorkTAPService WorkTAPService;
+        private readonly ILogger<PersonsController> _logger;
 
-        public PersonsController(IWorkTAPService workTAPService)
+        public PersonsController(IWorkTAPService workTAPService, ILogger<PersonsController> logger)
         {
+            _logger = logger;
             WorkTAPService = workTAPService;
         }
         /// GET: api/v1/persons Получение всех сотрудниковa
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Person>>> Get()
-        {
-            return Ok(await WorkTAPService.Get());
+        {            
+            return (ActionResult<IEnumerable<Person>>)Ok(await WorkTAPService.Get()).Value;//Чтобы убрать лишнее поле Result
         }
 
         /// GET: api/v1/person/id Получить конкретного сотрудника
@@ -34,10 +37,11 @@ namespace WorkTAP.Controllers
         {
             try
             {
-                return Ok(await WorkTAPService.Get(id));
+                return (ActionResult<Person>)Ok(await WorkTAPService.Get(id)).Value;
             }
-            catch
+            catch(Exception exception)
             {
+                _logger.LogError(exception.Message);
                 return NotFound("Пользователя с таким id не существует");
             }
         }
@@ -47,14 +51,13 @@ namespace WorkTAP.Controllers
         [HttpPut]
         public async Task<ActionResult<Person>> Put(Person updatedPerson)
         {
-            /*try
-            {*/
             try
             {
-                return Ok(await WorkTAPService.Update(updatedPerson));
+                return (ActionResult<Person>)Ok(await WorkTAPService.Update(updatedPerson)).Value;
             }
-            catch
+            catch(Exception exception)
             {
+                _logger.LogError(exception.Message);
                 return NotFound("Сущность не найдена");
             }
         }
@@ -64,7 +67,7 @@ namespace WorkTAP.Controllers
         [HttpPost]
         public async Task<ActionResult<Person>> Post(Person person)
         {
-            return Ok(await WorkTAPService.Create(person));
+            return (ActionResult<Person>)Ok(await WorkTAPService.Create(person)).Value;
         }
 
         /// DELETE: api/v1/person/id  Удаление существующего сотрудника
@@ -74,10 +77,11 @@ namespace WorkTAP.Controllers
         {
             try
             {
-                return Ok(await WorkTAPService.Delete(id));
+                return (ActionResult<Person>)Ok(await WorkTAPService.Delete(id)).Value;
             }
-            catch
+            catch(Exception exception)
             {
+                _logger.LogError(exception.Message);
                 return NotFound("Пользователя с данным id не существует");
             }
         }
